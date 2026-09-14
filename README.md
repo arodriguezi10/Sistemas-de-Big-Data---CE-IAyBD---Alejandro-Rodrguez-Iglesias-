@@ -1,2 +1,4 @@
-# Sistemas-de-Big-Data---CE-IAyBD---Alejandro-Rodrguez-Iglesias-
-Repositorio para la asignatura de Sistemas de Big Data
+# Sistema de Big Data
+* Alejandro Rodríguez Iglesias
+* arodriguezi10@educarex.es
+
