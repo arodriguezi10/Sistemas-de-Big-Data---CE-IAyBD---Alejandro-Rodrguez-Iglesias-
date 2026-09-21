@@ -40,6 +40,7 @@ Utilizando el dossier:
 
 ### 3. Comparar arquitecturas (25 minutos)
 
+
 | Criterio                     | Batch             | Streaming                           |
 | ---------------------------- | ----------------- | ----------------------------------- |
 | Rapidez para generar alertas | min-h             | con pocos seg-min                   |
@@ -53,6 +54,7 @@ Indica qué alternativa usarías para las alertas y cuál para los informes hist
 - Para los informes históricos usaría Batch, porque es más adecuado para analizar datos acumulados y generar reportes.
 
 ### 4. Elaborar una recomendación (30 minutos)
+
 Hola, escribo para comentar acerca de los 24 sensores que se quieren poner, para controlar la multitud, el aire y emitir alertas. El risgo a resolver mas rápido es el de la contaminación por PM2.5 y PM10 en D4 Sur Industrial, por su concentración de tráfico, industria y población. Para resolverlo proponemos activar alertas en tiempo real con Streaming, avisar a la población y restringir tráfico o desviar vehículos en esa zona.
 Por ejemplo, la D4 tiene mucha población, tráfico e industria; y la red presenta datos ausentes, sensores defectuosos y anomalías que pueden ocultar o desviar la realidad.
 Algo que deberíamos continuar mejorando es la calidad de los datos y la cobertura de la red, especialmente en los sensores defectuosos y en zonas sin sensores como D6.
