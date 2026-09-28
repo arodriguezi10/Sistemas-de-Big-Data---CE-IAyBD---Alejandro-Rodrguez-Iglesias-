@@ -1,0 +1,151 @@
+{
+  "_meta": {
+    "version": "1.0",
+    "description": "Estructura de datos para plataforma multimedia con soporte para filtros, recomendaciones y paginación."
+  },
+  "database": {
+    "genres": [
+      { "id": "g1", "name": "Ciencia Ficción" },
+      { "id": "g2", "name": "Drama" },
+      { "id": "g3", "name": "Acción" },
+      { "id": "g4", "name": "Comedia" }
+    ],
+    "movies": [
+      {
+        "id": "m1",
+        "title": "El Origen",
+        "release_year": 2010,
+        "genre_ids": ["g1", "g3"],
+        "duration_minutes": 148,
+        "average_rating": 4.8
+      },
+      {
+        "id": "m2",
+        "title": "Historia de un Matrimonio",
+        "release_year": 2019,
+        "genre_ids": ["g2"],
+        "duration_minutes": 137,
+        "average_rating": 4.2
+      }
+    ],
+    "series": [
+      {
+        "id": "s1",
+        "title": "Mundos Paralelos",
+        "release_year": 2016,
+        "genre_ids": ["g1", "g2"],
+        "average_rating": 4.7,
+        "seasons": [
+          {
+            "season_number": 1,
+            "episodes": [
+              {
+                "id": "ep101",
+                "episode_number": 1,
+                "title": "La desaparición",
+                "duration_minutes": 47
+              },
+              {
+                "id": "ep102",
+                "episode_number": 2,
+                "title": "El portal oscuro",
+                "duration_minutes": 50
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "users": [
+      {
+        "id": "u1",
+        "username": "cinefilo_pro",
+        "email": "cinefilo@example.com",
+        "preferences": {
+          "favorite_genres": ["g1", "g3"],
+          "content_types": ["movies", "series"]
+        }
+      },
+      {
+        "id": "u2",
+        "username": "drama_queen",
+        "email": "dq@example.com",
+        "preferences": {
+          "favorite_genres": ["g2"],
+          "content_types": ["series"]
+        }
+      }
+    ],
+    "ratings": [
+      {
+        "id": "r1",
+        "user_id": "u1",
+        "content_id": "m1",
+        "content_type": "movie",
+        "score": 5.0,
+        "review": "Una obra maestra visual y narrativa.",
+        "timestamp": "2023-10-15T08:30:00Z"
+      },
+      {
+        "id": "r2",
+        "user_id": "u2",
+        "content_id": "s1",
+        "content_type": "series",
+        "score": 4.5,
+        "review": "Muy intensa, me encantó el desarrollo de personajes.",
+        "timestamp": "2023-11-02T14:20:00Z"
+      }
+    ]
+  },
+  "api_responses_examples": {
+    "get_content_with_filters_and_pagination": {
+      "request": "/api/v1/content?type=movie&genre=g1&min_rating=4.0&page=1&limit=10",
+      "response": {
+        "pagination": {
+          "current_page": 1,
+          "page_size": 10,
+          "total_items": 1,
+          "total_pages": 1,
+          "has_next": false,
+          "has_previous": false
+        },
+        "filters_applied": {
+          "type": "movie",
+          "genre": "Ciencia Ficción",
+          "min_rating": 4.0
+        },
+        "data": [
+          {
+            "id": "m1",
+            "title": "El Origen",
+            "release_year": 2010,
+            "average_rating": 4.8
+          }
+        ]
+      }
+    },
+    "get_user_recommendations": {
+      "request": "/api/v1/users/u1/recommendations",
+      "response": {
+        "user_id": "u1",
+        "algorithm_version": "v2.1.collaborative_filtering",
+        "recommendations": [
+          {
+            "content_id": "s1",
+            "content_type": "series",
+            "title": "Mundos Paralelos",
+            "match_score": 98.5,
+            "reason": "Porque te gusta la Ciencia Ficción y tiene valoraciones altas de usuarios similares a ti."
+          },
+          {
+            "content_id": "m1",
+            "content_type": "movie",
+            "title": "El Origen",
+            "match_score": 95.0,
+            "reason": "Basado en tus géneros favoritos (Ciencia Ficción, Acción)."
+          }
+        ]
+      }
+    }
+  }
+}
