@@ -1,85 +1,45 @@
-# Plataforma Multimedia: películas, series, episodios, géneros, usuarios y valoraciones. Resuelve filtros, recomendaciones y paginación.
+## Modelos de Datos Documental 
 
-## Actividad 1: Definir el problema y los accesos
+### 1. Diagrama del modelo físico
 
-1. Escenarios y usuarios
+![Diagrama de mermaid](unnamed.png)
 
-    **Escenario:** una plataforma multimedia: películas, series, episodios, géneros y valoraciones. Resuelve filtros, recomendaciones y paginación. La arquitectura requiere alta concurrencia de lectura para el catálogo y alta capacidad de escritura para el seguimiento de progreso y telemetría.
+---
 
-    **Usuarios del sistema:**
-    *   **Clientes:** Consumen contenido, buscan por filtros, continúan reproducciones a medias y generan valoraciones.
-    *   **Administradores (Staff):** Gestionan el catálogo (CRUD de películas, series, episodios) y analizan métricas de consumo.
-    *   **Motor de Recomendación (Proceso batch/streaming):** Consume de forma intensiva el historial y las valoraciones para recalcular perfiles de afinidad.
+### 2. Incrustación (Embedding) vs Referencia (Rerencing)
 
-2. Preguntas de negocio:
+**Decisión de Incrustación (Embedding): Actores, Géneros y Episodios en `series/movies`**
 
-La base de datos debe estar optimizada para responder eficientemente a estas seis consultas clave:
+- **Justificación:** Se ha decidido incrustar el array `cast` (reparto), `genres` y toda la estructura de `seasons` con sus `episodes` dentro del documento principal del contenido.
+- **Tamaño y crecimiento (Bounded Arrays):** El crecimiento de estos arrays está acotado. Incluso una serie inusualmente larga (ej. 50 temporadas, 1000 episodios), almacenando los metadatos básicos del episodio (id, número, título, duración), ocuparía apenas 1-2 MB, quedando extremadamente lejos del límite físico de 16MB por documento en MongoDB.
+- **Frecuencia de lectura:** Muy alta. Cuando un usuario entra a la ficha de una serie, la interfaz requiere pintar inmediatamente las temporadas y episodios disponibles. Al incrustarlos, resolvemos la vista completa con una única operación de lectura, maximizando el rendimiento y evitando `$lookup` o consultas secundarias.
+- **Posibilidad de actualización:** Muy baja. Una vez publicado un episodio, sus metadatos estructurales (duración, número, título) rara vez sufren modificaciones.
 
-- ¿Películas o series mejor valoradas dentro de un género específico en el último año?
-- ¿Qué lista de contenidos tiene un usuario concreto a medias ("Seguir viendo")?
-- ¿Cuál es el listado detallado de episodios de una temporada de una serie, en el orden correcto de emisión?
-- ¿Cuáles son los títulos más populares (con más visualizaciones/valoraciones altas) en la plataforma durante los últimos 7 días (Trending)?
-- ¿Qué recomendaciones tiene un usuario específico basándonos en los géneros de los contenidos que ha valorado con más de 4 estrellas?
-- ¿Cuáles son todas las valoraciones y reseñas que ha recibido una película específica, ordenadas de las más recientes a las más antiguas?
+**Decisión de Referencia (Referencing): Reseñas y Episodios**
 
-3. Accesos Frecuentes (Patrones de Lectura/Escritura)
+- **Justificación:** Se ha decidido extraer `reviews` y `episodes` (y el historial/progreso) a sus propias colecciones, referenciando al contenido padre (`content_id`).
+- **Tamaño y crecimiento (Unbounded Arrays):** El volumen de valoraciones no tiene límite (Unbounded). Un contenido viral puede generar millones de reseñas. Si las incrustáramos, colapsaríamos rápidamente el límite de 16MB de MongoDB y generaríamos bloqueos constantes por actualización del documento.
+- **Frecuencia de lectura:** Media/Baja (respecto al catálogo). Los usuarios leen primero los datos del contenido; las reseñas se consultan bajo demanda, en segundo plano, o mediante paginación.
 
-En sistemas VOD, la proporción de lectura vs escritura suele ser de 10:1 o superior, excepto en la telemetría.
+---
 
-**Datos de mayor lectura (Read-Heavy):**
-*   El catálogo principal (feed de inicio, listas de géneros).
-*   Los metadatos de un contenido específico (sinopsis, reparto, URL del póster).
-*   Listado de episodios de una serie.
+### 3. Estrategia de identificadores
 
-**Datos de mayor escritura (Write-Heavy):**
-*   **Progreso de visualización (Heartbeats):** La posición actual del reproductor (marca de tiempo en segundos) se actualiza de forma constante mientras el usuario ve el contenido.
-*   **Historial de visualización y métricas:** Registro de qué usuario vio qué contenido y cuándo.
-*   Nuevas valoraciones/reseñas.
+- **Identificadores:** Se utiliza el `ObjectId` nativo de MongoDB para los `_id`. Es eficiente, garantiza unicidad distribuida y contiene una marca de tiempo implícita, lo que permite ordenar documentos por fecha de creación de forma gratuita.
+- **Fechas:** Almacenadas siempre como `ISODate` (tipo BSON Date) en UTC. Permite realizar consultas de rango temporales de forma nativa (ej. `$gte` y `$lte`).
+- **Estados y Tipos:** Se manejan mediante valores de cadena literales exactos (ej. `type: "movie" | "series"`). A nivel de validación (Schema Validation), actuará como un _Enum_ estricto.
+- **Campos opcionales:** Siguiendo la regla del _Sparse Field_, si un contenido no tiene `synopsis`, el campo se omite del documento JSON en lugar de guardarlo como `null` o vacío. Ahorra espacio en disco y memoria RAM.
 
-4. Relación de Consultas y Operaciones NoSQL
+---
 
-*Nota: Se asume desnormalización donde es necesario para evitar operaciones de cruce de tablas (como `$lookup`) costosas.*
+### 4. Límites del modelo
 
-| Pregunta de Negocio | Colecciones Implicadas | Filtros (Where / `$match`) | Ordenación (`$sort`) | Paginación (`$limit` / `$skip`) |
-| :--- | :--- | :--- | :--- | :--- |
-| **1. Top por género** | `contents` | `type: "movie"`, `genres: "Sci-Fi"`, `releaseYear: 2026` | `averageRating: -1` (Descendente) | `limit: 20`, `skip: X` |
-| **2. Seguir viendo** | `user_progress` | `userId: "u_123"`, `completed: false` | `lastWatchedAt: -1` (Descendente) | `limit: 10`, `skip: 0` |
-| **3. Listado de episodios**| `contents` / `episodes` | `seriesId: "s_456"`, `seasonNumber: 2` | `episodeNumber: 1` (Ascendente)| Sin paginación (suelen ser < 24) |
-| **4. Trending semanal** | `analytics` | `timestamp >= [hace 7 días]` | `viewsCount: -1`, `rating: -1` | `limit: 10`, `skip: 0` |
-| **5. Recomendaciones** | `recommendations` | `userId: "u_123"` | `matchScore: -1` (Descendente) | `limit: 15`, `skip: X` |
-| **6. Reseñas de película** | `reviews` | `contentId: "m_789"` | `createdAt: -1` (Descendente)| `limit: 50`, `skip: X` |
-
-
-5. Requisitos No Funcionales
-
-**Seguridad y Privacidad**
-*   **Cumplimiento Normativo (GDPR/LOPD):** El historial de visualización es un dato de carácter personal. Se debe aplicar cifrado en reposo (Encryption at Rest) en la base de datos y cifrado en tránsito (TLS 1.3).
-*   **RBAC (Role-Based Access Control):** Separación estricta a nivel de base de datos de los permisos de lectura/escritura de las API públicas frente a las del panel de administración.
-*   **Datos sensibles:** Las contraseñas en la colección `users` deben usar algoritmos de hash robustos (ej. Argon2 o bcrypt con *salt* dinámico).
-
-**Disponibilidad**
-*   **Tolerancia a fallos:** Implementación de Replica Sets (mínimo 3 nodos: Primario, Secundario, y un Árbitro o segundo Secundario) para asegurar conmutación por error (failover) automática y mantener el servicio online si un servidor cae (crítico en picos de tráfico nocturnos o fines de semana).
-
-**Crecimiento y Escalabilidad**
-*   **Sharding (Particionamiento horizontal):** Las colecciones `user_progress`, `history` y `reviews` crecerán exponencialmente. Se debe definir una clave de fragmentación (Shard Key) robusta, como el `userId` (haciendo hash de este) para distribuir la carga de escrituras equitativamente entre los servidores y evitar *hotspots*.
-*   **Patrones de Desnormalización:** Para operaciones como el cálculo de la nota media (Average Rating), en lugar de sumar todas las reseñas cada vez que se carga una película, se utilizará el patrón *Computed Pattern*: mantener un campo `averageRating` en el documento de la película que se actualice asíncronamente o en el momento de la inserción de una nueva valoración.
-
-## Actividad 2: Diseñar las colecciones
-
-1. Colecciones y su propósito
-
-Para satisfacer los requisitos de la plataforma, el modelo se divide en las siguientes colecciones principales:
-
-*   `contents`: Almacena la información principal del catálogo (películas y metadatos de las series). Es la colección de lectura más frecuente para poblar la interfaz.
-*   `episodes`: Almacena los episodios individuales de las series. Se separa de `contents` para evitar problemas de crecimiento descontrolado del documento.
-*   `users`: Gestiona los perfiles de los clientes, credenciales y preferencias básicas.
-*   `user_progress`: Registra el punto exacto de reproducción de un usuario en un contenido específico (heartbeats/seguir viendo). Altamente orientada a la escritura.
-*   `reviews`: Almacena las valoraciones y comentarios de los usuarios sobre los contenidos.
-
-2. Documentos de ejemplo (BSON/JSON)
-
-**Colección: `contents` (Ejemplo de una película)**
-*(Nota: Se incrustan los nombres de los géneros en lugar de sus IDs para evitar cruces de colecciones, tal como se justifica en el modelo).*
-```json
-
-```
+- **Tamaño máximo del documento:** Protegido mediante la separación de colecciones de crecimiento infinito (reseñas y telemetría). Los arrays incrustados (episodios, actores) están acotados y no suponen un riesgo para los 16MB.
+- **Crecimiento de arrays:** El único array susceptible de crecer es `cast` o `genres`, limitados por la propia naturaleza del dominio (una película no tiene miles de actores principales).
+- **Duplicación de datos (Desnormalización):**
+  - Redundancia intencionada en `averageRating` y `totalReviews` dentro de `contents` (Computed Pattern).
+  - Inclusión del `userName` dentro de `reviews` (Extended Reference Pattern) para evitar un join con la colección `users` al leer comentarios.
+- **Consistencia:** Es **eventual**. Si un usuario cambia su nombre en `users`, un proceso en segundo plano deberá actualizar el campo `userName` en todas sus `reviews` históricas.
+- **Operaciones incómodas:**
+  - _Cascading Deletes:_ Eliminar un usuario requiere lanzar múltiples borrados manuales en `user_progress` y `reviews` (MongoDB no tiene ON DELETE CASCADE).
+  - _Actualizaciones masivas:_ Cambiar el nombre de un género a nivel de plataforma implicaría un `updateMany` masivo, aunque es una operación de muy baja frecuencia.
