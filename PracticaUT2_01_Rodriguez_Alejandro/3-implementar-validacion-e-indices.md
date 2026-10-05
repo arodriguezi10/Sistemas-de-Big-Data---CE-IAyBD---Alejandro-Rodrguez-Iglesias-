@@ -97,6 +97,3 @@ db.usuarios.insertOne({
 });
 ```
 ![Respuesta](invalido.png)
-
-
-2. 
