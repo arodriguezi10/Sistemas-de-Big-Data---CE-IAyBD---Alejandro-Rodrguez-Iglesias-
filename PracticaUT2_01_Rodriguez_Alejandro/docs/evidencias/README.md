@@ -30,4 +30,16 @@ db.usuarios.insertOne({
 **Resultado obtenido**
 ![Respuesta](/PracticaUT2_01_Rodriguez_Alejandro/invalido.png)
 
-## 2.
+## 2. Evidencias de rendimiento  `explain(executionsStatas)`
+
+```json
+db.contenidos.find({ 
+    tipo: "Pelicula" 
+}).sort({ anio_lanzamiento: -1 }).explain("executionStats");
+``` 
+
+| Métrica | Antes del Índice | Después del Índice |
+| :--- | :--- | :--- |
+| **Etapa (Stage)** | `COLLSCAN` + `SORT` | `IXSCAN` + `FETCH` |
+| **Documentos examinados** | 1 | 1 |
+| **Tiempo de respuesta** | 1 ms | ~0-1 ms |
