@@ -90,7 +90,7 @@ db.contenidos.insertOne({
 });
 ```
 
-![Respuesta](valido.png)
+![Respuesta](img/valido.png)
 
 ### Prueba inválida para la colección `usuarios`
 
@@ -102,7 +102,7 @@ db.usuarios.insertOne({
 });
 ```
 
-![Respuesta](invalido.png)
+![Respuesta](img/invalido.png)
 
 2, 3 y 4. Índices
 

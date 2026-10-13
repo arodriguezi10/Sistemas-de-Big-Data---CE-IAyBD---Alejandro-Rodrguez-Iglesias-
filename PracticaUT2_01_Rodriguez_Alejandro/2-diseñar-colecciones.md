@@ -1,6 +1,6 @@
 ## Actividad 2: Diseñar las colecciones
 
-![Diagrama de mermaid](unnamed.png)
+![Diagrama de mermaid](img/unnamed.png)
 
 1. Colecciones y su propósito
 

@@ -37,11 +37,11 @@ db.contenidos.updateOne(
 ```
 
 - Resultado de inserción
-  ![Inserción](insercion.png)
+  ![Inserción](img/insercion.png)
 - Resultado de actualización
-  ![Actualización parcial](actualizacion.png)
+  ![Actualización parcial](img/actualizacion.png)
 - Eliminación o desactivación lógica
-  ![Eliminación o desactivación lógica](eliminacion.png)
+  ![Eliminación o desactivación lógica](img/eliminacion.png)
 
 2. Filtros conmbinados, ordenación y paginación estable
 
@@ -55,7 +55,7 @@ db.contenidos.find(
 .limit(2);
 ```
 - Filtros conmbinados, ordenación y paginación estable
-  ![filtros](paginacion.png)
+  ![filtros](img/paginacion.png)
 
 3. Consulta con Referencia Mediante `$lookup`
 
@@ -96,7 +96,7 @@ db.contenidos.aggregate([
 ```
 
 - lookup
-  ![lookup](lookup.png)
+  ![lookup](img/lookup.png)
 
 4. Agregación Compleja de 4+ Etapas con `$facet`
 
@@ -140,7 +140,7 @@ db.contenidos.aggregate([
 
 - Resultado `$facet`
 
-![$facet](resultado_$facet.png)
+![$facet](img/resultado_$facet.png)
 
 
 5. Análisis de escalabilidad al crecer de los datos

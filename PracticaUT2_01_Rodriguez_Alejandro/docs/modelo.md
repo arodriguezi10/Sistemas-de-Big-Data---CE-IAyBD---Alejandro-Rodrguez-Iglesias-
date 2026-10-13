@@ -2,7 +2,7 @@
 
 ### 1. Diagrama del modelo físico
 
-![Diagrama de mermaid](unnamed.png)
+![Diagrama de mermaid](/PracticaUT2_01_Rodriguez_Alejandro/unnamed.png)
 
 ---
 
