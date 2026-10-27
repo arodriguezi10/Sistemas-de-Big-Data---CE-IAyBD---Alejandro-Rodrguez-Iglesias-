@@ -13,8 +13,8 @@ CREATE CONSTRAINT unique_club_id FOR (c:ClubLectura) REQUIRE c.id_club IS UNIQUE
 CREATE CONSTRAINT unique_genero_nombre FOR (g:Genero) REQUIRE g.nombre_genero IS UNIQUE;
 ```
 
-![Restricciones de unicidad](./img/unicidad.png)
-![Restricciones de unicidad 2](./img/unicidad2.png)
+![Restricciones de unicidad](docs/evidencias/unicidad.png)
+![Restricciones de unicidad 2](docs/evidencias/unicidad2.png)
 
 ### 2. Índices secundarios
 
@@ -27,7 +27,7 @@ CREATE INDEX index_usuario_alias FOR (u:Usuario) ON (u.alias);
 CREATE INDEX index_autor_nombre FOR (a:Autor) ON (a.nombre);
 ```
 
-![Indices Secundarios](./img/index.png)
+![Indices Secundarios](docs/evidencias/index.png)
 
 ### 3 y 4. Carga controlada con MERGE (Dataset de prueba)
 
@@ -66,7 +66,7 @@ MERGE (u5:Usuario {id_usuario: 'U5'}) ON CREATE SET u5.alias = 'Elena';
 MERGE (c1:ClubLectura {id_club: 'C1'}) ON CREATE SET c1.nombre = 'Amantes del Thriller';
 ```
 
-![MERGE](./img/resultado_merge.png)
+![MERGE](docs/evidencias/resultado_merge.png)
 
 ```cypher
 // --------------------------------------------------------
@@ -119,7 +119,7 @@ MATCH (u5:Usuario {id_usuario: 'U5'}), (c1:ClubLectura {id_club: 'C1'}) MERGE (u
 MATCH (c1:ClubLectura {id_club: 'C1'}), (l1:Libro {isbn: '978-84-204-1214-5'}) MERGE (c1)-[:LEYENDO_ACTUALMENTE {mes: 10, anio: 2026}]->(l1);
 ```
 
-![MATCH](./img/resultados_match.png)
+![MATCH](docs/evidencias/resultados_match.png)
 
 ### 5. Evidencia del plan de ejecución (PROFILE)
 
@@ -133,7 +133,7 @@ MATCH (l:Libro {isbn: '978-84-08-04364-5'})<-[:ESCRIBIÓ]-(a:Autor)
 RETURN a.nombre;
 ```
 
-![evidencias](./img/evidencias.png)
+![evidencias](docs/evidencias/evidencias.png)
 
 Análisis del resultado esperado en Neo4j:
 

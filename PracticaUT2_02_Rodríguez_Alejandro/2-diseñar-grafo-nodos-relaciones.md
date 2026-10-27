@@ -1,6 +1,6 @@
 ## Actividad 2. Diseñar grafo de nodos y relaciones
 
-![Diagrama de Mermaid](./img/esquema_mermaid.png)
+![Diagrama de Mermaid](docs/evidencias/esquema_mermaid.png)
 
 ### 1. Etiquetas de Nodos (Labels) y Propiedades
 
