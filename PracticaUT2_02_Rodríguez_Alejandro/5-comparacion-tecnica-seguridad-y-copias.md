@@ -31,7 +31,10 @@ La forma de hacer los backups varía si estás en un entorno local o en la nube:
 *   **Neo4j Desktop / Contenedor Local:**
     Se utiliza la herramienta de comandos `neo4j-admin`. 
     1.  **Backup (Volcado):** Primero debes apagar la base de datos para asegurar la consistencia.
-        `neo4j-admin database dump neo4j --to-path=/ruta/a/mi_carpeta_backups`
+        `neo4j-admin database dump neo4j --to-path=/var/backups/neo4j/libros_$(date +%F).dump`
+
+        `.\bin\neo4j-admin.bat database dump neo4j --to-path=C:/backups/neo4j`
+
     2.  **Restauración:** Con la base de datos apagada, cargas el archivo `.dump`.
         `neo4j-admin database load neo4j --from-path=/ruta/a/mi_carpeta_backups/neo4j.dump`
 
